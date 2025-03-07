@@ -23,6 +23,29 @@ class planManagerScreen extends StatefulWidget {
 }
 
 class _planManagerScreenState extends State<planManagerScreen> {
+final List<Map<String, dynamic>> plans = [
+    {'name': 'Plan 1', 'completed': false},
+    {'name': 'Plan 2', 'completed': true},
+  ];
+
+  void _addPlan(String planName) {
+    setState((){
+      plans.add({'name': planName, 'completed': false});
+    });
+  }
+
+  void _deletePlan(int index){
+    setState((){
+      plans.removeAt(index);
+    });
+  }
+
+  void _updatePlan(int index, bool completed) {
+    setState((){
+      plans[index]['completed'] = completed;
+    });
+  }
+ 
   @override
   Widget build(BuildContext context) {
     return const Placeholder();
