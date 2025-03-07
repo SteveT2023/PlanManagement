@@ -62,36 +62,44 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
       body: ListView.builder(
         itemCount: plans.length,
         itemBuilder: (context, index) {
-          return ListTile(
-            title: GestureDetector(
-              onLongPress: () {
-                setState(() {
-                  plans[index]['editingName'] = true;
-                  _controller.text = plans[index]['name'];
-                });
-              },
-              child: plans[index]['editingName']
-                  ? TextField(
-                      controller: _controller,
-                      onSubmitted: (newName) {
-                        _editName(index, newName);
-                      },
-                    )
-                  : Text(plans[index]['name']),
-            ),
-            leading: Checkbox(
-              value: plans[index]['completed'],
-              onChanged: (value) {
-                if (value != null) {
-                  _updatePlan(index, value);
-                }
-              },
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () {
-                _deletePlan(index);
-              },
+          return Dismissible(
+            key: UniqueKey(),
+            onDismissed: (direction) {
+              setState(() {
+                plans[index]['completed'] = !plans[index]['completed'];
+              });
+            },
+            child: ListTile(
+              title: GestureDetector(
+                onLongPress: () {
+                  setState(() {
+                    plans[index]['editingName'] = true;
+                    _controller.text = plans[index]['name'];
+                  });
+                },
+                child: plans[index]['editingName']
+                    ? TextField(
+                        controller: _controller,
+                        onSubmitted: (newName) {
+                          _editName(index, newName);
+                        },
+                      )
+                    : Text(plans[index]['name']),
+              ),
+              leading: Checkbox(
+                value: plans[index]['completed'],
+                onChanged: (value) {
+                  if (value != null) {
+                    _updatePlan(index, value);
+                  }
+                },
+              ),
+              trailing: IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () {
+                  _deletePlan(index);
+                },
+              ),
             ),
           );
         },
