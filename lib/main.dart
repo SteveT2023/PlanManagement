@@ -87,7 +87,7 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
                           _editName(index, newName);
                         },
                       )
-                    : Text(plans[index]['name']),
+                    : Text(plans[index]['name'], style: TextStyle(color: plans[index]['completed'] ? Colors.green : Colors.orange)),
               ),
               leading: Checkbox(
                 value: plans[index]['completed'],
