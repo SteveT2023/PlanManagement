@@ -10,23 +10,20 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: planManagerScreen(),
+      home: PlanManagerScreen(),
     );
   }
 }
 
-class planManagerScreen extends StatefulWidget {
-  const planManagerScreen({super.key});
+class PlanManagerScreen extends StatefulWidget {
+  const PlanManagerScreen({super.key});
 
   @override
-  State<planManagerScreen> createState() => _planManagerScreenState();
+  State<PlanManagerScreen> createState() => _PlanManagerScreenState();
 }
 
-class _planManagerScreenState extends State<planManagerScreen> {
-final List<Map<String, dynamic>> plans = [
-    {'name': 'Plan 1', 'completed': false},
-    {'name': 'Plan 2', 'completed': true},
-  ];
+class _PlanManagerScreenState extends State<PlanManagerScreen> {
+final List<Map<String, dynamic>> plans = [];
 
   void _addPlan(String planName) {
     setState((){
@@ -48,6 +45,40 @@ final List<Map<String, dynamic>> plans = [
  
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text ('Plan Manager', style: TextStyle(color: Colors.white)),
+        centerTitle: true,
+        backgroundColor: Colors.deepOrangeAccent,
+      ),
+      body: ListView.builder (
+        itemCount: plans.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(plans[index]['name']),
+            leading: Checkbox(
+              value: plans[index]['completed'],
+              onChanged: (value) {
+                if (value != null) {
+                  _updatePlan(index, value);
+                }
+              },
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: (){
+                _deletePlan(index);
+              }
+            )
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _addPlan ('New Plan');
+        },
+        child: const Icon(Icons.add)
+      ),
+    );
   }
 }
