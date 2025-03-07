@@ -23,39 +23,62 @@ class PlanManagerScreen extends StatefulWidget {
 }
 
 class _PlanManagerScreenState extends State<PlanManagerScreen> {
-final List<Map<String, dynamic>> plans = [];
+  final List<Map<String, dynamic>> plans = [];
+  final TextEditingController _controller = TextEditingController();
 
   void _addPlan(String planName) {
-    setState((){
-      plans.add({'name': planName, 'completed': false});
+    setState(() {
+      plans.add({'name': planName, 'completed': false, 'editingName': false});
     });
   }
 
-  void _deletePlan(int index){
-    setState((){
+  void _deletePlan(int index) {
+    setState(() {
       plans.removeAt(index);
     });
   }
 
   void _updatePlan(int index, bool completed) {
-    setState((){
+    setState(() {
       plans[index]['completed'] = completed;
     });
   }
- 
+
+  void _editName(int index, String newName) {
+    setState(() {
+      plans[index]['name'] = newName;
+      plans[index]['editingName'] = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text ('Plan Manager', style: TextStyle(color: Colors.white)),
+        title: const Text('Plan Manager', style: TextStyle(color: Colors.white)),
         centerTitle: true,
         backgroundColor: Colors.deepOrangeAccent,
       ),
-      body: ListView.builder (
+      body: ListView.builder(
         itemCount: plans.length,
         itemBuilder: (context, index) {
           return ListTile(
-            title: Text(plans[index]['name']),
+            title: GestureDetector(
+              onLongPress: () {
+                setState(() {
+                  plans[index]['editingName'] = true;
+                  _controller.text = plans[index]['name'];
+                });
+              },
+              child: plans[index]['editingName']
+                  ? TextField(
+                      controller: _controller,
+                      onSubmitted: (newName) {
+                        _editName(index, newName);
+                      },
+                    )
+                  : Text(plans[index]['name']),
+            ),
             leading: Checkbox(
               value: plans[index]['completed'],
               onChanged: (value) {
@@ -66,18 +89,18 @@ final List<Map<String, dynamic>> plans = [];
             ),
             trailing: IconButton(
               icon: const Icon(Icons.delete),
-              onPressed: (){
+              onPressed: () {
                 _deletePlan(index);
-              }
-            )
+              },
+            ),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          _addPlan ('New Plan');
+          _addPlan('New Plan');
         },
-        child: const Icon(Icons.add)
+        label: const Text("Create Plan")
       ),
     );
   }
