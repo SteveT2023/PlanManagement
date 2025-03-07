@@ -77,6 +77,9 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
                     _controller.text = plans[index]['name'];
                   });
                 },
+                onDoubleTap: (){
+                  _deletePlan(index);
+                },
                 child: plans[index]['editingName']
                     ? TextField(
                         controller: _controller,
@@ -92,12 +95,6 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
                   if (value != null) {
                     _updatePlan(index, value);
                   }
-                },
-              ),
-              trailing: IconButton(
-                icon: const Icon(Icons.delete),
-                onPressed: () {
-                  _deletePlan(index);
                 },
               ),
             ),
