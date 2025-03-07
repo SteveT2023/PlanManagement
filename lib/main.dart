@@ -59,53 +59,91 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
         centerTitle: true,
         backgroundColor: Colors.deepOrangeAccent,
       ),
-      body: ListView.builder(
-        itemCount: plans.length,
-        itemBuilder: (context, index) {
-          return Dismissible(
-            key: UniqueKey(),
-            onDismissed: (direction) {
-              setState(() {
-                plans[index]['completed'] = !plans[index]['completed'];
-              });
-            },
-            child: ListTile(
-              title: GestureDetector(
-                onLongPress: () {
-                  setState(() {
-                    plans[index]['editingName'] = true;
-                    _controller.text = plans[index]['name'];
-                  });
-                },
-                onDoubleTap: (){
-                  _deletePlan(index);
-                },
-                child: plans[index]['editingName']
-                    ? TextField(
-                        controller: _controller,
-                        onSubmitted: (newName) {
-                          _editName(index, newName);
-                        },
-                      )
-                    : Text(plans[index]['name'], style: TextStyle(color: plans[index]['completed'] ? Colors.green : Colors.orange)),
-              ),
-              leading: Checkbox(
-                value: plans[index]['completed'],
-                onChanged: (value) {
-                  if (value != null) {
-                    _updatePlan(index, value);
-                  }
-                },
+      body: Column(
+        children: [
+          Expanded(
+            child: DragTarget<Map<String, dynamic>>(
+              onAccept: (dragPlan) {
+                _addPlan(dragPlan['name']);
+              },
+              builder: (context, candidateData, rejectedData) {
+                return ListView.builder(
+                  itemCount: plans.length,
+                  itemBuilder: (context, index) {
+                    return Dismissible(
+                      key: UniqueKey(),
+                      onDismissed: (direction) {
+                        setState(() {
+                          plans[index]['completed'] = !plans[index]['completed'];
+                        });
+                      },
+                      child: ListTile(
+                        title: GestureDetector(
+                          onLongPress: () {
+                            setState(() {
+                              plans[index]['editingName'] = true;
+                              _controller.text = plans[index]['name'];
+                            });
+                          },
+                          onDoubleTap: () {
+                            _deletePlan(index);
+                          },
+                          child: plans[index]['editingName']
+                              ? TextField(
+                                  controller: _controller,
+                                  onSubmitted: (newName) {
+                                    _editName(index, newName);
+                                  },
+                                )
+                              : Text(
+                                  plans[index]['name'],
+                                  style: TextStyle(
+                                    color: plans[index]['completed'] ? Colors.green : Colors.orange,
+                                  ),
+                                ),
+                        ),
+                        leading: Checkbox(
+                          value: plans[index]['completed'],
+                          onChanged: (value) {
+                            if (value != null) {
+                              _updatePlan(index, value);
+                            }
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Draggable<Map<String, dynamic>>(
+            data: {'name': 'New Plan'},
+            feedback: Material(
+              child: FloatingActionButton.extended(
+                onPressed: null,
+                backgroundColor: Colors.deepOrangeAccent,
+                label: const Text("New Plan"),
               ),
             ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          _addPlan('New Plan');
-        },
-        label: const Text("Create Plan")
+            child: FloatingActionButton.extended(
+              onPressed: null,
+              label: const Text("Drag to Create Plan"),
+            ),
+          ),
+          const SizedBox(width: 2),
+          FloatingActionButton.extended(
+            onPressed: () {
+              _addPlan('New Plan');
+            },
+            label: const Text("Create Plan"),
+          ),
+        ],
       ),
     );
   }
