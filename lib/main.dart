@@ -24,11 +24,19 @@ class PlanManagerScreen extends StatefulWidget {
 
 class _PlanManagerScreenState extends State<PlanManagerScreen> {
   final List<Map<String, dynamic>> plans = [];
-  final TextEditingController _controller = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
 
-  void _addPlan(String planName) {
+  void _addPlan(String planName, String description, String date) {
     setState(() {
-      plans.add({'name': planName, 'completed': false, 'editingName': false});
+      plans.add({
+        'name': planName,
+        'description': description,
+        'date': date,
+        'completed': false,
+        'editingName': false
+      });
     });
   }
 
@@ -51,6 +59,52 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
     });
   }
 
+  Future<void> _planDescription() async {
+    _nameController.clear();
+    _descriptionController.clear();
+    _dateController.clear();
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text ('Enter Plan Details'),
+          content: Column(
+            children: [
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Plan Name'),
+              ),
+              TextField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(labelText: 'Plan Description'),
+              ),
+              TextField(
+                controller: _dateController,
+                decoration: const InputDecoration(labelText: 'Plan Date'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                _addPlan(_nameController.text, _descriptionController.text, _dateController.text);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Save'),
+            ),
+          ]
+        );
+      }
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,7 +118,7 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
           Expanded(
             child: DragTarget<Map<String, dynamic>>(
               onAccept: (dragPlan) {
-                _addPlan(dragPlan['name']);
+                _addPlan(dragPlan['name'], dragPlan['description'], dragPlan['date']);
               },
               builder: (context, candidateData, rejectedData) {
                 return ListView.builder(
@@ -82,7 +136,7 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
                           onLongPress: () {
                             setState(() {
                               plans[index]['editingName'] = true;
-                              _controller.text = plans[index]['name'];
+                              _nameController.text = plans[index]['name'];
                             });
                           },
                           onDoubleTap: () {
@@ -90,16 +144,23 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
                           },
                           child: plans[index]['editingName']
                               ? TextField(
-                                  controller: _controller,
+                                  controller: _nameController,
                                   onSubmitted: (newName) {
                                     _editName(index, newName);
                                   },
                                 )
-                              : Text(
-                                  plans[index]['name'],
-                                  style: TextStyle(
-                                    color: plans[index]['completed'] ? Colors.green : Colors.orange,
-                                  ),
+                              : Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      plans[index]['name'],
+                                      style: TextStyle(
+                                        color: plans[index]['completed'] ? Colors.green : Colors.orange,
+                                      ),
+                                    ),
+                                    Text(plans[index]['description']),
+                                    Text(plans[index]['date']),
+                                  ],
                                 ),
                         ),
                         leading: Checkbox(
@@ -123,7 +184,7 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Draggable<Map<String, dynamic>>(
-            data: {'name': 'New Plan'},
+            data: {'name': 'New Plan', 'description': '', 'date': ''},
             feedback: Material(
               child: FloatingActionButton.extended(
                 onPressed: null,
@@ -136,10 +197,9 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
               label: const Text("Drag to Create Plan"),
             ),
           ),
-          const SizedBox(width: 2),
           FloatingActionButton.extended(
             onPressed: () {
-              _addPlan('New Plan');
+              _planDescription();
             },
             label: const Text("Create Plan"),
           ),
