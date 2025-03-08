@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 void main() {
   runApp(MyApp());
@@ -27,15 +28,17 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
+  DateTime _selectedDay = DateTime.now();
+  DateTime _focusedDay = DateTime.now();
 
   void _addPlan(String planName, String description, String date) {
     setState(() {
       plans.add({
         'name': planName,
         'description': description,
-        'date': date,
+        'date': date.split(' ')[0],
         'completed': false,
-        'editingName': false
+        'editEnable': false
       });
     });
   }
@@ -52,10 +55,12 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
     });
   }
 
-  void _editName(int index, String newName) {
+  void _editPlan(int index, String newName, String newDescription, String newDate) {
     setState(() {
       plans[index]['name'] = newName;
-      plans[index]['editingName'] = false;
+      plans[index]['description'] = newDescription;
+      plans[index]['date'] = newDate.split(' ')[0];
+      plans[index]['editEnable'] = false;
     });
   }
 
@@ -115,10 +120,27 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
       ),
       body: Column(
         children: [
+          TableCalendar(
+            firstDay: DateTime.utc(2020, 01, 01),
+            lastDay: DateTime.utc(2030, 01, 01),
+            focusedDay: _focusedDay,
+            selectedDayPredicate: (day) {
+              return isSameDay(_selectedDay, day);
+            },
+            onDaySelected: (selectedDay, focusedDay) {
+              setState(() {
+                _selectedDay = selectedDay;
+                _focusedDay = focusedDay;
+              });
+            },
+            onPageChanged: (focusedDay) {
+              _focusedDay = focusedDay;
+            },
+          ),
           Expanded(
             child: DragTarget<Map<String, dynamic>>(
               onAccept: (dragPlan) {
-                _addPlan(dragPlan['name'], dragPlan['description'], dragPlan['date']);
+                _addPlan(dragPlan['name'], dragPlan['description'], _selectedDay.toString().split(' ')[0]);
               },
               builder: (context, candidateData, rejectedData) {
                 return ListView.builder(
@@ -135,33 +157,67 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
                         title: GestureDetector(
                           onLongPress: () {
                             setState(() {
-                              plans[index]['editingName'] = true;
+                              plans[index]['editEnable'] = true;
                               _nameController.text = plans[index]['name'];
+                              _descriptionController.text = plans[index]['description'];
+                              _dateController.text = plans[index]['date'];
                             });
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: const Text('Edit Plan Details'),
+                                  content: Column(
+                                    children: [
+                                      TextField(
+                                        controller: _nameController,
+                                        decoration: const InputDecoration(labelText: 'Plan Name'),
+                                      ),
+                                      TextField(
+                                        controller: _descriptionController,
+                                        decoration: const InputDecoration(labelText: 'Plan Description'),
+                                      ),
+                                      TextField(
+                                        controller: _dateController,
+                                        decoration: const InputDecoration(labelText: 'Plan Date'),
+                                      ),
+                                    ],
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        _editPlan(index, _nameController.text, _descriptionController.text, _dateController.text);
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text('Save'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
                           },
                           onDoubleTap: () {
                             _deletePlan(index);
                           },
-                          child: plans[index]['editingName']
-                              ? TextField(
-                                  controller: _nameController,
-                                  onSubmitted: (newName) {
-                                    _editName(index, newName);
-                                  },
-                                )
-                              : Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      plans[index]['name'],
-                                      style: TextStyle(
-                                        color: plans[index]['completed'] ? Colors.green : Colors.orange,
-                                      ),
-                                    ),
-                                    Text(plans[index]['description']),
-                                    Text(plans[index]['date']),
-                                  ],
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                plans[index]['name'],
+                                style: TextStyle(
+                                  color: plans[index]['completed'] ? Colors.green : Colors.orange,
                                 ),
+                              ),
+                              Text(plans[index]['description']),
+                              Text(plans[index]['date']),
+                            ],
+                          ),
                         ),
                         leading: Checkbox(
                           value: plans[index]['completed'],
